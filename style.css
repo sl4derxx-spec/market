@@ -1,4 +1,106 @@
-body { background-color: #050a12; color: #ffcc00; margin: 0; font-family: sans-serif; }
-#chart-container { width: 100%; height: 300px; }
-.info { padding: 20px; text-align: center; }
-#buy-btn { background: #ffcc00; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; }
+/* Базовые настройки экрана */
+body { 
+    background-color: #050a12; 
+    color: #ffffff; 
+    margin: 0; 
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    padding: 15px;
+    overflow-x: hidden;
+}
+
+/* Шапка с профилем */
+#header {
+    background: #0b1422;
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid #1e2a3a;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#user-photo { 
+    width: 45px; 
+    height: 45px; 
+    border-radius: 50%; 
+    border: 2px solid #ffcc00;
+}
+
+#user-balance {
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: bold;
+}
+
+/* График */
+#chart-container { 
+    width: 100%; 
+    height: 250px; 
+    background: #000;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #1e2a3a;
+}
+
+/* Админ-панель */
+.admin-panel {
+    background: linear-gradient(45deg, #1a1000, #0b1422);
+    border: 1px dashed #ffcc00;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.admin-panel h4 { margin: 0 0 10px 0; color: #ffcc00; }
+
+/* Сетка карточек валют */
+#market-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.asset-card {
+    background: #0b1422;
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid #1e2a3a;
+    transition: 0.3s;
+}
+
+.asset-icon { font-size: 28px; display: block; margin-bottom: 5px; }
+.asset-name { font-weight: bold; font-size: 14px; color: #8a9ab0; margin-bottom: 12px; display: block; }
+
+/* Кнопки покупки */
+.buy-buttons { display: flex; flex-direction: column; gap: 8px; }
+
+button {
+    background: #1e2a3a;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:active { transform: scale(0.95); }
+
+/* СПЕЦИАЛЬНЫЙ СТИЛЬ ДЛЯ TELEGRAM STARS */
+.asset-card[data-id="t_stars"] {
+    border: 1px solid #ffcc00;
+    background: linear-gradient(145deg, #0b1422, #2b2b10);
+}
+
+.asset-card[data-id="t_stars"] .asset-name {
+    color: #ffcc00;
+}
+
+.asset-card[data-id="t_stars"] button {
+    background: #ffcc00;
+    color: #000;
+}
+

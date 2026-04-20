@@ -1,19 +1,31 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NGR Market Exchange</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NGR Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="chart-container"></div>
-    <div class="info">
-        <h1 id="current-price">0.00</h1>
-        <button id="buy-btn" onclick="buy()">Купить DST</button>
+    <div id="header">
+        <div id="user-info">
+            <img id="user-photo" src="" alt="👤">
+            <div>
+                <div id="user-name">Загрузка...</div>
+                <div id="user-balance"></div>
+            </div>
+        </div>
     </div>
-    <script src="app.js"></script>
+
+    <div id="admin-container"></div>
+
+    <div class="market-section">
+        <h3 style="color: #8a9ab0; margin-left: 5px;">📈 Котировки NGR</h3>
+        <div id="market-grid"></div>
+    </div>
+
+    <script type="module" src="app.js"></script>
 </body>
 </html>
