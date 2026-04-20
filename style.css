@@ -1,106 +1,250 @@
-/* Базовые настройки экрана */
-body { 
-    background-color: #050a12; 
-    color: #ffffff; 
-    margin: 0; 
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    padding: 15px;
-    overflow-x: hidden;
+/* NGR COMPANY - GLOBAL STYLESHEET v4.0 
+    ARCHITECTURE: CYBER-MODULAR
+*/
+
+:root {
+    /* Основная палитра */
+    --bg-dark: #050a12;
+    --bg-panel: #0b1422;
+    --bg-card: #0e1a2b;
+    --accent: #ffcc00;
+    --accent-glow: rgba(255, 204, 0, 0.3);
+    --text-main: #ffffff;
+    --text-dim: #8a9ab0;
+    --up-color: #00ff88;
+    --down-color: #ff4444;
+    
+    /* Шрифты и размеры */
+    --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Шапка с профилем */
-#header {
-    background: #0b1422;
+/* ОБНУЛЕНИЕ И БАЗА */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    user-select: none;
+}
+
+/* КОНТЕЙНЕР ПРИЛОЖЕНИЯ */
+#app-wrapper {
+    max-width: 500px;
+    margin: 0 auto;
     padding: 15px;
-    border-radius: 15px;
-    border: 1px solid #1e2a3a;
-    margin-bottom: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ШАПКА И ПРОФИЛЬ */
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+#user-info {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-#user-photo { 
-    width: 45px; 
-    height: 45px; 
-    border-radius: 50%; 
-    border: 2px solid #ffcc00;
+.avatar-container {
+    position: relative;
+    width: 45px;
+    height: 45px;
 }
 
+#user-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    object-fit: cover;
+}
+
+.status-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background: var(--up-color);
+    border-radius: 50%;
+    border: 2px solid var(--bg-dark);
+}
+
+.user-meta #user-name {
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.user-rank {
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* БАЛАНС */
 #user-balance {
+    text-align: right;
+    background: var(--bg-panel);
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ГРАФИК (CHART SECTION) */
+.chart-section {
+    background: var(--bg-panel);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-header h3 {
+    margin: 0;
     font-size: 14px;
-    line-height: 1.5;
-    font-weight: bold;
+    color: var(--text-dim);
 }
 
-/* График */
-#chart-container { 
-    width: 100%; 
-    height: 250px; 
-    background: #000;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #1e2a3a;
+#chart-container {
+    width: 100%;
+    height: 200px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-/* Админ-панель */
-.admin-panel {
-    background: linear-gradient(45deg, #1a1000, #0b1422);
-    border: 1px dashed #ffcc00;
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+/* АДМИН-ПАНЕЛЬ */
+.admin-panel-v2 {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0b1422 100%);
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 
-.admin-panel h4 { margin: 0 0 10px 0; color: #ffcc00; }
-
-/* Сетка карточек валют */
-#market-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+/* РЫНОК (MARKET V2) */
+.market-section {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
 }
 
-.asset-card {
-    background: #0b1422;
-    padding: 15px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid #1e2a3a;
-    transition: 0.3s;
+.asset-card-v2 {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: var(--transition);
 }
 
-.asset-icon { font-size: 28px; display: block; margin-bottom: 5px; }
-.asset-name { font-weight: bold; font-size: 14px; color: #8a9ab0; margin-bottom: 12px; display: block; }
+.asset-card-v2:active {
+    background: #16253b;
+    border-color: var(--accent);
+}
 
-/* Кнопки покупки */
-.buy-buttons { display: flex; flex-direction: column; gap: 8px; }
-
+/* КНОПКИ */
 button {
-    background: #1e2a3a;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: bold;
     cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: var(--transition);
 }
 
-button:active { transform: scale(0.95); }
-
-/* СПЕЦИАЛЬНЫЙ СТИЛЬ ДЛЯ TELEGRAM STARS */
-.asset-card[data-id="t_stars"] {
-    border: 1px solid #ffcc00;
-    background: linear-gradient(145deg, #0b1422, #2b2b10);
-}
-
-.asset-card[data-id="t_stars"] .asset-name {
-    color: #ffcc00;
-}
-
-.asset-card[data-id="t_stars"] button {
-    background: #ffcc00;
+.btn-buy-stars {
+    background: var(--accent);
     color: #000;
+    text-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
+
+.btn-pay.star {
+    background: rgba(255, 204, 0, 0.1);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+
+.btn-pay.coin {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--up-color);
+    border: 1px solid var(--up-color);
+}
+
+/* МОДАЛЬНЫЕ ОКНА */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center; justify-content: center;
+}
+
+.modal-window {
+    background: var(--bg-panel);
+    width: 90%;
+    max-width: 400px;
+    border-radius: 24px;
+    padding: 25px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ПОДВАЛ (FOOTER) */
+.terminal-footer {
+    margin-top: auto;
+    padding: 20px 0;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background: var(--up-color);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--up-color);
+    animation: pulse 2s infinite;
+}
+
+/* АНИМАЦИИ */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+/* СКРОЛЛБАР */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+/* УТИЛИТЫ */
+.hidden { display: none !important; }
 
