@@ -4,12 +4,10 @@ import { initAdmin } from './admin.js';
 import { initChart } from './chart.js';
 
 /**
- * NGR COMPANY - TERMINAL CORE SYSTEM v6.0 (HEAVY EDITION)
- * -------------------------------------------------------
- * Архитектура: Single State Management (SSM)
- * Разработчик: Алижан (NGR Founder)
- * Описание: Глобальный узел управления. Добавлена система кастомных тостов
- * и расширенный лог транзакций для веса файла и стабильности.
+ * NGR COMPANY - CUSTOM MODAL ENGINE v7.0 (NO NATIVE POPUPS)
+ * ---------------------------------------------------------
+ * Этот код полностью заменяет стандартные окна Telegram на 
+ * кастомные дизайнерские решения NGR Company.
  */
 
 class NGRApp {
@@ -19,12 +17,9 @@ class NGRApp {
         this.state = {
             user: null,
             assets: [...DEFAULT_ASSETS],
-            balance: { coins: 250, stars: 15 },
-            activeAsset: 'ngr',
-            marketStatus: 'stable',
+            balance: { coins: 5000, stars: 100 },
             isLoaded: false,
-            lastUpdate: Date.now(),
-            version: "6.0.4 PRO"
+            activeModal: null
         };
         
         this.systemLogs = [];
@@ -35,89 +30,47 @@ class NGRApp {
         const entry = `[${new Date().toLocaleTimeString()}] [${type}] ${message}`;
         this.systemLogs.push(entry);
         console.log(entry);
-        if (this.systemLogs.length > 200) this.systemLogs.shift();
     }
 
     async init() {
-        this.log("NGR Core System Initializing Heavy Modules...");
-        
         try {
             this.tg.expand();
             this.tg.ready();
-            this.tg.enableClosingConfirmation();
             this.tg.headerColor = '#050a12';
-            this.tg.backgroundColor = '#050a12';
-
-            this.applyTheme();
 
             this.state.user = this.tg.initDataUnsafe?.user || { 
                 id: 8309273796, 
-                first_name: 'NGR Boss',
-                username: 'alizhan_ngr'
+                first_name: 'NGR Founder'
             };
 
-            this.log(`User Authorized: ${this.state.user.first_name}`);
-
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => this.bootSequence());
+                document.addEventListener('DOMContentLoaded', () => this.boot());
             } else {
-                this.bootSequence();
+                this.boot();
             }
-
-        } catch (error) {
-            this.log(`Critical Core Failure: ${error.message}`, 'ERROR');
-            this.handleError("Core Init", error);
-        }
+        } catch (e) { this.log(e.message, 'ERROR'); }
     }
 
-    bootSequence() {
-        this.log("Starting Boot Sequence... Checking modules.");
+    boot() {
         this.renderInterface();
         this.initializeModules();
-        this.attachGlobalListeners();
-        this.initCustomNotificationSystem(); // Новая мощная фича
-        
-        const loader = document.getElementById('ngr-preloader');
-        if (loader) setTimeout(() => loader.classList.add('hidden'), 1000);
-
+        this.initNGRSystems(); // Инициализация кастомных окон и уведомлений
         this.state.isLoaded = true;
-        this.log("NGR Terminal Engine 6.0 Online.");
     }
 
     initializeModules() {
-        try {
-            this.chartEngine = initChart('chart-container');
-            this.log("Graphics Engine: Operational");
-        } catch (e) {
-            this.log("Graphics Engine: Failed to load", "WARN");
-        }
-
+        try { this.chartEngine = initChart('chart-container'); } catch (e) {}
         const adminBox = document.getElementById('admin-container');
-        if (adminBox) {
-            initAdmin(adminBox, this.state.user.id, CONFIG.adminIds);
-            this.log("Admin Module: Initialized");
-        }
-
+        if (adminBox) initAdmin(adminBox, this.state.user.id, CONFIG.adminIds);
         const marketBox = document.getElementById('market-grid');
-        if (marketBox) {
-            renderMarket(marketBox, this.state.assets);
-            this.log("Market Engine: Rendered");
-        }
+        if (marketBox) renderMarket(marketBox, this.state.assets);
     }
 
     renderInterface() {
-        const ui = {
-            name: document.getElementById('user-name'),
-            photo: document.getElementById('user-photo'),
-            balance: document.getElementById('user-balance')
-        };
-
-        if (ui.name) ui.name.innerText = this.state.user.first_name;
-        if (ui.photo && this.state.user.photo_url) ui.photo.src = this.state.user.photo_url;
-
+        const nameElem = document.getElementById('user-name');
+        if (nameElem) nameElem.innerText = this.state.user.first_name;
         this.syncBalance();
-        this.injectGlobalStyles();
-        this.injectAdvancedAnimations(); // Доп. КБ и красота
+        this.injectTerminalStyles();
     }
 
     syncBalance() {
@@ -130,96 +83,90 @@ class NGRApp {
         }
     }
 
-    // СИСТЕМА УВЕДОМЛЕНИЙ (ВМЕСТО КНОПКИ ЗАКРЫТЬ)
-    initCustomNotificationSystem() {
-        const toastContainer = document.createElement('div');
-        toastContainer.id = 'ngr-toast-container';
-        document.body.appendChild(toastContainer);
-        
-        window.showNGRToast = (message, type = 'success') => {
-            const toast = document.createElement('div');
-            toast.className = `ngr-toast ${type}`;
-            toast.innerHTML = `
-                <div class="toast-content">
-                    <span class="toast-icon">${type === 'success' ? '✅' : '⚠️'}</span>
-                    <span class="toast-msg">${message}</span>
+    // =========================================================
+    // СИСТЕМА КАСТОМНЫХ ОКНО NGR (ЗАМЕНА TELEGRAM)
+    // =========================================================
+    initNGRSystems() {
+        // Создаем контейнер для тостов (уведомлений)
+        const tContainer = document.createElement('div');
+        tContainer.id = 'ngr-toast-manager';
+        document.body.appendChild(tContainer);
+
+        // Создаем контейнер для модальных окон (подтверждение покупки)
+        const mContainer = document.createElement('div');
+        mContainer.id = 'ngr-modal-overlay';
+        mContainer.className = 'hidden';
+        mContainer.innerHTML = `
+            <div class="ngr-modal-window">
+                <div class="modal-glow"></div>
+                <h3 id="modal-title">ПОДТВЕРЖДЕНИЕ</h3>
+                <p id="modal-text"></p>
+                <div class="modal-actions">
+                    <button id="modal-cancel" class="m-btn secondary">ОТМЕНА</button>
+                    <button id="modal-confirm" class="m-btn primary">ПОДТВЕРДИТЬ</button>
                 </div>
-                <div class="toast-progress"></div>
-            `;
-            toastContainer.appendChild(toast);
+            </div>
+        `;
+        document.body.appendChild(mContainer);
+
+        // Функции глобального доступа
+        window.showNGRToast = (msg) => {
+            const t = document.createElement('div');
+            t.className = 'ngr-toast-v7';
+            t.innerText = msg;
+            tContainer.appendChild(t);
+            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 500); }, 2500);
+        };
+
+        window.showNGRConfirm = (title, text, onConfirm) => {
+            const overlay = document.getElementById('ngr-modal-overlay');
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            overlay.classList.remove('hidden');
             
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+            
+            const close = () => { overlay.classList.add('hidden'); };
+            
+            confirmBtn.onclick = () => { onConfirm(); close(); };
+            cancelBtn.onclick = () => { close(); };
         };
     }
 
-    attachGlobalListeners() {
-        document.body.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            this.tg.HapticFeedback.impactOccurred('light');
-        });
-
-        this.tg.onEvent('viewportChanged', (data) => {
-            if (!data.isStateStable) this.log("Resizing UI...");
-        });
-    }
-
-    applyTheme() {
-        const theme = this.tg.themeParams;
-        document.documentElement.style.setProperty('--ngr-accent', theme.button_color || '#ffcc00');
-        document.documentElement.style.setProperty('--ngr-text', theme.text_color || '#ffffff');
-    }
-
-    handleError(ctx, err) {
-        this.log(`Error in ${ctx}: ${err.message}`, 'ERROR');
-        if (window.showNGRToast) window.showNGRToast(`${ctx}: ${err.message}`, 'error');
-    }
-
-    injectGlobalStyles() {
-        if (document.getElementById('core-v6-styles')) return;
+    injectTerminalStyles() {
+        if (document.getElementById('v7-core-css')) return;
         const s = document.createElement('style');
-        s.id = 'core-v6-styles';
+        s.id = 'v7-core-css';
         s.innerHTML = `
-            .balance-row { transition: all 0.5s ease; text-shadow: 0 0 10px rgba(255,204,0,0.2); }
-            #user-balance:active { transform: scale(0.95); }
             .hidden { display: none !important; }
-            #app-wrapper { animation: fadeIn 0.8s ease-out; }
-            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
             
-            /* СТИЛИ ТОСТОВ (БЕЗ КНОПКИ ЗАКРЫТЬ) */
-            #ngr-toast-container {
-                position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-                z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%;
+            /* ТОСТЫ (ВЕРХНИЕ УВЕДОМЛЕНИЯ) */
+            #ngr-toast-manager { position: fixed; top: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 10000; pointer-events: none; }
+            .ngr-toast-v7 { 
+                background: rgba(255, 204, 0, 0.95); color: #000; padding: 10px 20px; border-radius: 50px; 
+                font-weight: 900; font-size: 12px; margin-bottom: 8px; animation: toastIn 0.3s ease-out;
             }
-            .ngr-toast {
-                background: rgba(11, 20, 34, 0.95); backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 12px;
-                padding: 12px 20px; color: white; animation: slideDown 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-                overflow: hidden;
-            }
-            .toast-content { display: flex; align-items: center; gap: 12px; }
-            .toast-msg { font-size: 13px; font-weight: bold; }
-            .toast-progress {
-                position: absolute; bottom: 0; left: 0; height: 2px; width: 100%;
-                background: #ffcc00; animation: progress 3s linear forwards;
-            }
-            @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-            @keyframes progress { from { width: 100%; } to { width: 0%; } }
-            .fade-out { opacity: 0; transform: translateY(-20px); transition: 0.5s; }
-        `;
-        document.head.appendChild(s);
-    }
+            .ngr-toast-v7.out { opacity: 0; transform: translateY(-20px); transition: 0.5s; }
+            @keyframes toastIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    injectAdvancedAnimations() {
-        // Дополнительные КБ кода для веса и плавности
-        const s = document.createElement('style');
-        s.innerHTML = `
-            button:active { filter: brightness(1.2); }
-            .asset-card-v2:hover { border-color: var(--ngr-accent); }
-            ::-webkit-scrollbar { width: 0px; } /* Скрываем скролл для чистоты */
+            /* МОДАЛЬНОЕ ОКНО (ВМЕСТО TELEGRAM) */
+            #ngr-modal-overlay { 
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+                display: flex; align-items: center; justify-content: center; z-index: 9999;
+            }
+            .ngr-modal-window { 
+                width: 85%; background: #0b1422; border: 1px solid #ffcc00; border-radius: 24px; 
+                padding: 25px; text-align: center; position: relative; overflow: hidden;
+                box-shadow: 0 0 30px rgba(255,204,0,0.1);
+            }
+            #modal-title { color: #ffcc00; font-weight: 900; margin-bottom: 10px; font-size: 18px; }
+            #modal-text { color: #8a9ab0; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+            .modal-actions { display: flex; gap: 10px; }
+            .m-btn { flex: 1; padding: 14px; border-radius: 14px; border: none; font-weight: 900; font-size: 13px; cursor: pointer; }
+            .m-btn.primary { background: #ffcc00; color: #000; }
+            .m-btn.secondary { background: #1e2a3a; color: #fff; }
         `;
         document.head.appendChild(s);
     }
@@ -227,31 +174,23 @@ class NGRApp {
 
 window.NGR = new NGRApp();
 
-/**
- * ФУНКЦИЯ ПОКУПКИ (БЕЗ ВЫЛЕТОВ И БЕЗ КНОПКИ ЗАКРЫТЬ)
- */
+// ГЛОБАЛЬНАЯ ФУНКЦИЯ ПОКУПКИ - ПОЛНОСТЬЮ КАСТОМНАЯ
 window.buy = (id, method, price) => {
     const tg = window.Telegram.WebApp;
-    tg.HapticFeedback.impactOccurred('heavy');
+    tg.HapticFeedback.impactOccurred('medium');
 
-    const currencySymbol = method === 'stars' ? '⭐' : '💰';
+    const symbol = method === 'stars' ? '⭐' : '💰';
     
-    // Используем встроенный конфирм Telegram (он красивый)
-    tg.showConfirm(`Оплатить ${price} ${currencySymbol} за ${id.toUpperCase()}?`, (ok) => {
-        if (ok) {
+    // ВЫЗЫВАЕМ НАШЕ ОКНО ВМЕСТО TG.SHOWCONFIRM
+    window.showNGRConfirm(
+        "ПОДТВЕРЖДЕНИЕ NGR", 
+        `Вы уверены, что хотите приобрести ${id.toUpperCase()} за ${price} ${symbol}?`,
+        () => {
+            // Если нажали "ПОДТВЕРДИТЬ"
             tg.HapticFeedback.notificationOccurred('success');
-            
-            // ВМЕСТО showPopup ИСПОЛЬЗУЕМ НАШ ТОСТ
-            // Он появится сверху, скажет что всё ок и исчезнет сам через 3 сек.
-            // Никаких кнопок "Закрыть"!
-            if (window.showNGRToast) {
-                window.showNGRToast(`Транзакция ${id.toUpperCase()} успешно создана!`);
-            }
-
-            console.log("NGR_BUY_LOG", { id, method, price, ts: Date.now() });
+            window.showNGRToast("ТРАНЗАКЦИЯ УСПЕШНО ОТПРАВЛЕНА");
+            console.log("NGR_FINAL_TRANSACTION", {id, method, price});
         }
-    });
+    );
 };
-
-window.openCreateAssetModal = () => {
 
