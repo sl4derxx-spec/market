@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     
-    <title>NGR EXCHANGE TERMINAL v6.0 ULTRA</title>
+    <title>NGR TERMINAL OS v12.0 — FINAL MONOLITH</title>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
@@ -14,143 +16,99 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /** * NGR COMPANY - INDUSTRIAL INTERFACE STYLESHEET
-         * ------------------------------------------------
-         * Вес файла увеличен за счет расширенных графических параметров
-         */
+        /* ЯДЕРНЫЙ ЗАПРЕТ СКРОЛЛА И СИСТЕМНЫХ ЭЛЕМЕНТОВ
+           Этот блок делает страницу статичным "камнем"
+        */
         :root {
             --bg-color: #050a12;
             --accent-color: #ffcc00;
-            --accent-glow: rgba(255, 204, 0, 0.3);
-            --card-bg: rgba(11, 20, 34, 0.8);
-            --border-color: rgba(255, 255, 255, 0.05);
-            --text-main: #ffffff;
-            --text-dim: #8a9ab0;
-            --success: #00ff88;
-            --danger: #ff4444;
+            --text-color: #ffffff;
         }
 
-        /* Полная блокировка системных сдвигов */
         html, body {
-            background-color: var(--bg-color);
-            margin: 0; padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--text-main);
-            overflow: hidden;
-            height: 100%; width: 100%;
-            position: fixed;
+            background-color: var(--bg-color) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important; /* УБИВАЕМ СКРОЛЛ BODY */
+            position: fixed !important; /* ПРИБИВАЕМ ГВОЗДЯМИ */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: none; /* ЗАПРЕТ ВСЕХ ЖЕСТОВ НА УРОВНЕ БРАУЗЕРА */
         }
 
-        /* МАССИВНЫЙ ПРЕЛОАДЕР NGR v6.0 */
+        /* КОНТЕЙНЕР ПРИЛОЖЕНИЯ С СОБСТВЕННЫМ СКРОЛЛОМ */
+        #app-wrapper {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            overflow-y: auto !important; /* Скролл только тут */
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        #app-wrapper.visible { opacity: 1; }
+
+        /* ПРЕЛОАДЕР NGR v12.0 (ДЛЯ ВЕСА И КРАСОТЫ) */
         #ngr-preloader {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #0b1422 0%, #050a12 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10000; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background: radial-gradient(circle at center, #0b1422, #050a12);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 9999;
         }
-        
-        .loader-content { position: relative; text-align: center; }
-        
-        .loader-logo-v6 {
-            font-size: 60px; font-weight: 900; color: var(--accent-color);
-            letter-spacing: 10px; margin-bottom: 30px;
-            text-shadow: 0 0 30px var(--accent-glow);
-            animation: logoPulse 2s infinite ease-in-out;
+        .loader-logo {
+            font-size: 50px; font-weight: 900; color: var(--accent-color);
+            text-shadow: 0 0 30px rgba(255, 204, 0, 0.6);
+            letter-spacing: 5px; animation: pulse 2s infinite;
         }
-
-        .loader-ring {
-            width: 120px; height: 120px;
-            border: 2px solid rgba(255, 204, 0, 0.1);
-            border-top: 2px solid var(--accent-color);
-            border-radius: 50%;
-            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-            animation: spin 1s infinite linear;
+        .loader-bar-wrap {
+            width: 200px; height: 2px; background: rgba(255,255,255,0.05);
+            margin-top: 30px; border-radius: 10px; overflow: hidden;
         }
-
-        @keyframes spin { 100% { transform: translateX(-50%) rotate(360deg); } }
-        @keyframes logoPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } }
-
-        .loader-progress-wrap { width: 200px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 20px; }
-        .loader-progress-bar { width: 0%; height: 100%; background: var(--accent-color); box-shadow: 0 0 15px var(--accent-color); animation: fillProgress 1.5s forwards ease-in-out; }
-        
-        @keyframes fillProgress { 0% { width: 0%; } 100% { width: 100%; } }
-
-        /* ОСНОВНОЙ КОНТЕЙНЕР */
-        #app-wrapper {
-            opacity: 0; transform: translateY(20px);
-            transition: all 1s ease;
-            height: 100vh; display: flex; flex-direction: column;
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
-            padding-bottom: 80px; /* Для футера */
+        .loader-bar-fill {
+            width: 0%; height: 100%; background: var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-color);
+            animation: fillProgress 1.5s forwards ease-in-out;
         }
+        @keyframes fillProgress { to { width: 100%; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        #app-wrapper.visible { opacity: 1; transform: translateY(0); }
+        /* ИСКУССТВЕННЫЙ ВЕС ФАЙЛА (CSS ДОКУМЕНТАЦИЯ) */
+        /*
+          NGR TERMINAL PROTOCOL v12.0
+          ---------------------------
+          SECURITY_LEVEL: MAXIMUM
+          ANTI_OVERLAY_ENGINE: ENABLED
+          STABLE_BUILD_ID: 8309273796
+        */
 
-        /* HEADER СИСТЕМА */
-        header#header {
-            padding: 20px; display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, rgba(5,10,18,1), rgba(5,10,18,0));
-            position: sticky; top: 0; z-index: 100; backdrop-filter: blur(5px);
+        /* ПОЛНОЕ УНИЧТОЖЕНИЕ ЛЮБЫХ ОСТАТКОВ СТАРОЙ КНОПКИ ЗАКРЫТЬ */
+        .modal-overlay, .modal-window, .modal-close-btn, 
+        #global-modal, #legacy-modal, [class*="modal"], [id*="modal"] {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+            position: fixed !important;
+            left: -9999px !important;
         }
-
-        #user-info { display: flex; align-items: center; gap: 15px; }
-        .avatar-container { position: relative; width: 50px; height: 50px; }
-        #user-photo { width: 100%; height: 100%; border-radius: 15px; border: 1.5px solid var(--accent-color); object-fit: cover; }
-        .status-badge { 
-            position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; 
-            background: var(--success); border: 2px solid var(--bg-color); border-radius: 50%;
-            box-shadow: 0 0 10px var(--success);
-        }
-
-        .user-meta { display: flex; flex-direction: column; }
-        #user-name { font-weight: 800; font-size: 16px; color: #fff; }
-        .user-rank { font-size: 10px; color: var(--accent-color); font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
-
-        #user-balance { text-align: right; }
-        .balance-row.main { font-size: 18px; font-weight: 900; color: #fff; }
-        .balance-row.sub { font-size: 11px; color: var(--text-dim); }
-
-        /* СЕКЦИИ ЭКРАНА */
-        section { margin: 15px; border-radius: 24px; }
-        
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .section-header h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0; color: var(--text-dim); }
-        
-        #chart-timeframe { background: var(--card-bg); padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 1px solid var(--border-color); }
-
-        .chart-section { background: var(--card-bg); padding: 20px; border: 1px solid var(--border-color); }
-        #chart-container { width: 100%; height: 250px; border-radius: 12px; overflow: hidden; }
-
-        /* FOOTER ТЕРМИНАЛА */
-        .terminal-footer {
-            margin-top: auto; padding: 25px; text-align: center;
-            border-top: 1px solid var(--border-color);
-        }
-        .version { font-size: 9px; font-weight: 900; color: var(--text-dim); letter-spacing: 2px; }
-        .connection-status { font-size: 8px; margin-top: 8px; color: var(--success); display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .dot { width: 4px; height: 4px; background: var(--success); border-radius: 50%; animation: blink 1s infinite; }
-
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        /* ВЫРЕЗАНО СТАРЬЕ И ЗАМЕНЕНО НА НОВОЕ ЧЕРЕЗ АПП.ДЖС, НО МЫ ОСТАВИМ ДЛЯ ВЕСА СКРЫТЫМ */
-        #legacy-overlay { display: none; }
     </style>
 </head>
 <body>
 
     <div id="ngr-preloader">
-        <div class="loader-content">
-            <div class="loader-ring"></div>
-            <div class="loader-logo-v6">NGR</div>
-            <div class="loader-progress-wrap">
-                <div class="loader-progress-bar"></div>
-            </div>
-            <div style="margin-top: 20px; font-size: 9px; letter-spacing: 4px; color: #5c6b7f; font-weight: 900;">
-                DECRYPTING CORE...
-            </div>
+        <div class="loader-logo">NGR</div>
+        <div class="loader-bar-wrap"><div class="loader-bar-fill"></div></div>
+        <div style="margin-top: 15px; font-size: 9px; color: #5c6b7f; letter-spacing: 3px; font-weight: 900;">
+            DECRYPTING CORE INTERFACE...
         </div>
     </div>
 
@@ -159,11 +117,11 @@
         <header id="header">
             <div id="user-info">
                 <div class="avatar-container">
-                    <img id="user-photo" src="https://via.placeholder.com/100" alt="👤">
+                    <img id="user-photo" src="" alt="👤">
                     <div class="status-badge"></div>
                 </div>
                 <div class="user-meta">
-                    <div id="user-name">LOADING ACCESS...</div>
+                    <div id="user-name">OPERATOR_LOGGING_IN...</div>
                     <div class="user-rank">NGR ELITE OPERATOR</div>
                 </div>
             </div>
@@ -173,77 +131,73 @@
 
         <section class="chart-section">
             <div class="section-header">
-                <h3><span class="icon">📈</span> MARKET REALTIME</h3>
-                <div id="chart-timeframe">INTERVAL: 5S</div>
+                <h3><span class="icon">📈</span> MARKET_REALTIME_FEED</h3>
+                <div id="chart-timeframe">INTERVAL_1D</div>
             </div>
-            <div id="chart-container">
-                </div>
+            <div id="chart-container"></div>
         </section>
 
-        <section id="admin-container">
-            </section>
+        <div id="admin-container"></div>
 
         <section class="market-section">
             <div class="section-header">
-                <h3><span class="icon">💎</span> AVAILABLE ASSETS</h3>
+                <h3><span class="icon">💎</span> ASSETS_MANAGEMENT</h3>
             </div>
-            <div id="market-grid">
-                </div>
+            <div id="market-grid"></div>
         </section>
 
-        <section class="system-diagnostics" style="padding: 20px; background: rgba(255,255,255,0.02); border-radius: 20px; margin: 15px;">
-            <div style="font-size: 8px; color: #5c6b7f; font-family: monospace;">
-                > SYSTEM STATUS: NOMINAL<br>
-                > LATENCY: 12MS<br>
-                > SECURE ENCLAVE: ACTIVE<br>
-                > ENCRYPTION: AES-256-GCM
-            </div>
-        </section>
+        <div style="padding: 20px; font-family: monospace; font-size: 8px; color: #1e2a3a; line-height: 1.2;">
+            > KERNEL_STATE: ACTIVE<br>
+            > ENCRYPTION_PROVIDER: NGR_SECURE_v4<br>
+            > TRADING_ENGINE: STABLE<br>
+            > NODE_LOCATION: KOSTANAY_QAZAKHSTAN<br>
+            > PROTOCOL_V12_LOADED_SUCCESSFULLY
+        </div>
 
         <footer class="terminal-footer">
-            <div class="version">NGR TERMINAL OS v6.0.4 PRO-BUILD</div>
+            <div class="version">NGR TERMINAL OS v12.0.1 PRO BUILD</div>
             <div class="connection-status">
-                <span class="dot"></span> NODE: KOSTANAY-MAINNET-01
+                <span class="dot"></span> SECURE_TUNNEL_ACTIVE
             </div>
         </footer>
 
     </div>
 
-    <div id="legacy-modal" style="display: none !important;">
-        <button onclick="console.log('Legacy close')">CLOSE</button>
-    </div>
-
     <script type="module" src="app.js"></script>
 
     <script>
-        /**
-         * NGR CORE BOOT LOADER
-         */
+        // СКРИПТ ПОЛНОЙ БЛОКИРОВКИ СВАЙПОВ ТЕЛЕГРАМА
         window.addEventListener('load', () => {
-            console.log("DOM Fully Loaded. Finalizing boot sequence...");
-            
-            // Имитация загрузки системных данных
+            // Принудительная готовность WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+                
+                // Блокируем системный свайп вниз
+                if (window.Telegram.WebApp.isVerticalSwipesEnabled !== undefined) {
+                    window.Telegram.WebApp.isVerticalSwipesEnabled = false;
+                }
+            }
+
+            // Убираем прелоадер
             setTimeout(() => {
                 const preloader = document.getElementById('ngr-preloader');
                 const app = document.getElementById('app-wrapper');
-                
-                if (preloader) {
-                    preloader.style.opacity = '0';
-                    setTimeout(() => {
-                        preloader.style.display = 'none';
-                        app.classList.add('visible');
-                        
-                        // Тактильный отклик при входе
-                        if (window.Telegram && window.Telegram.WebApp) {
-                            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-                        }
-                    }, 800);
-                }
-            }, 2000);
+                preloader.style.display = 'none';
+                app.classList.add('visible');
+            }, 1800);
         });
 
-        // Блокировка контекстного меню для чистоты интерфейса
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        // Жесткая блокировка контекстного меню
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        
+        // Запрет "резинового" скролла на iOS
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.id === 'app-wrapper' || e.target.closest('#app-wrapper')) {
+                return; 
+            }
+            e.preventDefault();
+        }, { passive: false });
     </script>
 
 </body>
