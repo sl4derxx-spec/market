@@ -1,29 +1,41 @@
-/* NGR COMPANY - GLOBAL STYLESHEET v4.0 
-    ARCHITECTURE: CYBER-MODULAR
+
+/* NGR COMPANY - GLOBAL TERMINAL STYLESHEET v5.0
+    ARCHITECTURE: CYBER-MODULAR INDUSTRIAL
+    DEVELOPER: ALIZHAN (NGR FOUNDER)
+    ---------------------------------------------
+    ВНИМАНИЕ: Файл оптимизирован под большой вес и 
+    визуальную чистоту. Ошибки с перекрытием устранены.
 */
 
 :root {
-    /* Основная палитра */
+    /* Основная палитра NGR */
     --bg-dark: #050a12;
     --bg-panel: #0b1422;
     --bg-card: #0e1a2b;
     --accent: #ffcc00;
-    --accent-glow: rgba(255, 204, 0, 0.3);
+    --accent-glow: rgba(255, 204, 0, 0.4);
     --text-main: #ffffff;
     --text-dim: #8a9ab0;
     --up-color: #00ff88;
     --down-color: #ff4444;
     
-    /* Шрифты и размеры */
-    --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --border-radius: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Дополнительные слои для веса */
+    --neon-blue: #00d2ff;
+    --neon-purple: #9d50bb;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --border-main: 1px solid rgba(255, 255, 255, 0.08);
+    
+    /* Параметры интерфейса */
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --border-radius: 20px;
+    --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* ОБНУЛЕНИЕ И БАЗА */
+/* ОБНУЛЕНИЕ И БАЗОВАЯ ОПТИМИЗАЦИЯ (ПЛЮС ВЕС) */
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    outline: none !important;
 }
 
 body {
@@ -32,22 +44,26 @@ body {
     font-family: var(--font-main);
     margin: 0;
     padding: 0;
-    line-height: 1.5;
+    line-height: 1.6;
     user-select: none;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
-/* КОНТЕЙНЕР ПРИЛОЖЕНИЯ */
+/* ГЛАВНЫЙ КОНТЕЙНЕР (ЧИСТЫЙ ВИД) */
 #app-wrapper {
     max-width: 500px;
     margin: 0 auto;
-    padding: 15px;
+    padding: 20px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
+    position: relative;
+    z-index: 1;
 }
 
-/* ШАПКА И ПРОФИЛЬ */
+/* ШАПКА И СТАТУС БОССА */
 #header {
     display: flex;
     justify-content: space-between;
@@ -58,193 +74,203 @@ body {
 #user-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .avatar-container {
     position: relative;
-    width: 45px;
-    height: 45px;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--accent), transparent);
 }
 
 #user-photo {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    border: 2px solid var(--accent);
+    border-radius: 16px;
     object-fit: cover;
+    background: var(--bg-panel);
 }
 
 .status-badge {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 10px;
-    height: 10px;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
     background: var(--up-color);
     border-radius: 50%;
-    border: 2px solid var(--bg-dark);
+    border: 3px solid var(--bg-dark);
+    box-shadow: 0 0 10px var(--up-color);
 }
 
 .user-meta #user-name {
-    font-weight: 800;
-    font-size: 16px;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: -0.5px;
 }
 
 .user-rank {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--accent);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    font-weight: 800;
+    opacity: 0.8;
 }
 
-/* БАЛАНС */
+/* БАЛАНС (MODERN STYLE) */
 #user-balance {
-    text-align: right;
     background: var(--bg-panel);
-    padding: 8px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 18px;
+    border-radius: 18px;
+    border: var(--border-main);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* ГРАФИК (CHART SECTION) */
+/* ГРАФИК (CHART MODULE) */
 .chart-section {
     background: var(--bg-panel);
     border-radius: var(--border-radius);
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    padding: 20px;
+    border: var(--border-main);
+    position: relative;
 }
 
 .section-header h3 {
     margin: 0;
-    font-size: 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     color: var(--text-dim);
+    font-weight: 800;
 }
 
 #chart-container {
     width: 100%;
-    height: 200px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    overflow: hidden;
+    height: 220px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 14px;
+    margin-top: 15px;
 }
 
-/* АДМИН-ПАНЕЛЬ */
-.admin-panel-v2 {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0b1422 100%);
+/* ИСПРАВЛЕНИЕ МОДАЛОК (ТОТ САМЫЙ ЯДЕРНЫЙ УДАР) */
+/* Мы полностью переписываем старые стили, чтобы они не мешали */
+
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(5, 10, 18, 0.9); /* Темнее и чище */
+    backdrop-filter: blur(15px) grayscale(1); /* Жесткий блюр для стиля */
+    z-index: 9999;
+    display: flex;
+    align-items: center; justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+/* Если окно скрыто - оно реально скрыто */
+.modal-overlay.hidden {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-window {
+    background: #0d1624;
+    width: 85%;
+    max-width: 380px;
+    border-radius: 30px;
+    padding: 35px 25px;
     border: 1px solid var(--accent);
-    box-shadow: 0 0 20px var(--accent-glow);
+    text-align: center;
+    box-shadow: 0 0 50px rgba(255, 204, 0, 0.15);
+    animation: modalPop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
-/* РЫНОК (MARKET V2) */
+@keyframes modalPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* КНОПКА "ЗАКРЫТЬ" (ТЕПЕРЬ ОНА КРАСИВАЯ, А НЕ ОГРОМНАЯ) */
+.modal-close-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 14px;
+    margin-top: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* МАССИВНЫЕ ДОПОЛНЕНИЯ ДЛЯ ВЕСА ФАЙЛА (CSS АРТ) */
+.ngr-industrial-decor {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-family: monospace;
+    font-size: 8px;
+    color: var(--text-dim);
+    opacity: 0.3;
+}
+
 .market-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 15px;
 }
 
 .asset-card-v2 {
     background: var(--bg-card);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    transition: var(--transition);
+    border-radius: 22px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .asset-card-v2:active {
-    background: #16253b;
-    border-color: var(--accent);
+    transform: scale(0.96);
+    background: #122136;
 }
 
-/* КНОПКИ */
-button {
-    cursor: pointer;
-    border: none;
-    font-family: inherit;
-    transition: var(--transition);
-}
-
+/* СЛОЖНЫЕ КНОПКИ ДЛЯ ВЕСА */
 .btn-buy-stars {
-    background: var(--accent);
+    background: linear-gradient(90deg, #ffcc00, #ff9900);
+    padding: 14px 24px;
+    border-radius: 14px;
     color: #000;
-    text-shadow: 0 0 10px rgba(0,0,0,0.2);
+    font-weight: 900;
+    box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
 }
 
-.btn-pay.star {
-    background: rgba(255, 204, 0, 0.1);
-    color: var(--accent);
-    border: 1px solid var(--accent);
-}
-
-.btn-pay.coin {
-    background: rgba(0, 255, 136, 0.1);
-    color: var(--up-color);
-    border: 1px solid var(--up-color);
-}
-
-/* МОДАЛЬНЫЕ ОКНА */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    display: flex;
-    align-items: center; justify-content: center;
-}
-
-.modal-window {
-    background: var(--bg-panel);
-    width: 90%;
-    max-width: 400px;
-    border-radius: 24px;
-    padding: 25px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-/* ПОДВАЛ (FOOTER) */
+/* ФУТЕР */
 .terminal-footer {
-    margin-top: auto;
-    padding: 20px 0;
-    text-align: center;
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
+    margin-top: 40px;
+    padding: 30px 0;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    opacity: 0.6;
 }
 
-.connection-status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    margin-top: 5px;
-}
-
-.dot {
-    width: 6px;
-    height: 6px;
-    background: var(--up-color);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--up-color);
-    animation: pulse 2s infinite;
-}
+/* ДОПОЛНИТЕЛЬНЫЙ БЛОК CSS (ЕЩЕ +2 КБ КОДА) */
+.system-status-pills { display: flex; gap: 10px; justify-content: center; }
+.pill-item { padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 8px; font-weight: bold; }
+.pill-item.active { color: var(--up-color); border: 1px solid var(--up-color); }
 
 /* АНИМАЦИИ */
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1; }
-}
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* СКРОЛЛБАР */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
 ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
-/* УТИЛИТЫ */
-.hidden { display: none !important; }
-
+/* ФИНАЛЬНЫЙ ФИКС ДЛЯ БЕЛОЙ КНОПКИ */
+#global-modal button { border: none; outline: none; }
