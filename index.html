@@ -3,133 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NGR TERMINAL OS v12.1 — INDUSTRIAL BUILD</title>
+    <title>NGR_TERMINAL_v13</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         :root {
-            --bg-dark: #050a12; --bg-panel: #0b1422; --accent: #ffcc00;
-            --text-main: #ffffff; --text-dim: #8a9ab0; --up-color: #00ff88;
+            --bg: #050a12; --panel: #0b1422; --card: #0e1a2b; --accent: #ffcc00;
+            --stars: #00ff88; --coins: #00eaff; --text: #ffffff; --dim: #8a9ab0;
+            --red: #ff4444; --green: #00ff88;
         }
-        body {
-            background: var(--bg-dark); color: var(--text-main);
-            margin: 0; font-family: sans-serif; overflow: hidden;
-            position: fixed; width: 100%; height: 100%;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html {
+            margin: 0; padding: 0; background: var(--bg); color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow: hidden; height: 100vh; width: 100vw; position: fixed;
         }
-        #app-wrapper { height: 100%; display: flex; flex-direction: column; }
-        header {
-            padding: 20px; border-bottom: 1px solid rgba(255,204,0,0.2);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        #chart-container { width: 100%; height: 200px; background: #000; }
-        #market-grid { padding: 20px; flex: 1; overflow-y: auto; }
-        .asset-card {
-            background: var(--bg-panel); margin-bottom: 10px; padding: 15px;
-            border-radius: 12px; display: flex; justify-content: space-between;
-            border-left: 4px solid var(--accent);
-        }
-        .price { color: var(--accent); font-weight: bold; }
-        .boot-screen {
+
+        #loader {
             position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; font-family: monospace;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+        .l-bar { width: 240px; height: 2px; background: #111; margin-top: 20px; position: relative; }
+        .l-fill { position: absolute; height: 100%; background: var(--accent); width: 0%; box-shadow: 0 0 15px var(--accent); }
+        .l-status { font-family: monospace; font-size: 9px; color: var(--dim); margin-top: 10px; text-transform: uppercase; letter-spacing: 2px; }
+
+        #main-ui { display: none; flex-direction: column; height: 100vh; opacity: 0; transition: opacity 0.5s ease; }
+        
+        header {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,204,0,0.1); background: rgba(11,20,34,0.8); backdrop-filter: blur(15px);
+        }
+        .u-info { display: flex; align-items: center; gap: 12px; }
+        .u-avatar { width: 40px; height: 40px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; }
+        .u-balances { text-align: right; }
+        .b-val { font-size: 16px; font-weight: 900; display: block; }
+        .b-val.stars { color: var(--stars); }
+        .b-val.coins { color: var(--coins); font-size: 12px; }
+
+        #terminal-core { flex: 0 0 42%; position: relative; background: var(--panel); border-bottom: 1px solid #1e2a3a; }
+        #chart-canvas { height: 100%; width: 100%; }
+        
+        .tf-switches {
+            position: absolute; top: 15px; right: 15px; z-index: 100;
+            display: flex; gap: 4px; background: rgba(0,0,0,0.6); padding: 4px; border-radius: 10px;
+        }
+        .tf-btn {
+            background: transparent; border: none; color: var(--dim); padding: 5px 10px;
+            font-size: 10px; font-weight: 800; border-radius: 6px; cursor: pointer;
+        }
+        .tf-btn.active { background: var(--accent); color: #000; }
+
+        #market-core { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
+        .m-header { font-size: 10px; color: var(--dim); font-weight: 900; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
+
+        .ngt-card {
+            background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255,255,255,0.03); position: relative;
+        }
+        .ngt-card::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 3px; background: var(--accent); border-radius: 0 4px 4px 0; }
+        
+        .ngt-meta h4 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; }
+        .ngt-meta span { font-size: 9px; color: var(--dim); font-weight: 700; }
+        
+        .ngt-actions { display: flex; flex-direction: column; gap: 6px; min-width: 100px; }
+        .buy-btn {
+            border: none; border-radius: 10px; padding: 8px 12px; font-size: 10px; font-weight: 900;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .buy-stars { background: rgba(0, 255, 136, 0.1); color: var(--stars); border: 1px solid rgba(0, 255, 136, 0.2); }
+        .buy-coins { background: rgba(0, 234, 255, 0.1); color: var(--coins); border: 1px solid rgba(0, 234, 255, 0.2); }
+        .buy-btn:active { transform: scale(0.96); }
+
+        footer {
+            position: fixed; bottom: 0; width: 100%; height: 75px;
+            background: #000; display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+        }
+        .f-item { font-size: 24px; filter: grayscale(1); opacity: 0.5; }
+        .f-item.active { filter: grayscale(0); opacity: 1; }
     </style>
 </head>
 <body>
 
-<div id="boot" class="boot-screen">
-    <div id="boot-logs"></div>
-</div>
+    <div id="loader">
+        <div style="font-weight:900; letter-spacing:8px; color:var(--accent); font-size:20px;">NGR_SYSTEM</div>
+        <div class="l-bar"><div class="l-fill" id="l-fill"></div></div>
+        <div class="l-status" id="l-status">INITIALIZING_NGT_MARKET...</div>
+    </div>
 
-<div id="app-wrapper">
-    <header>
-        <div>
-            <div style="font-size: 10px; color: var(--text-dim)">OPERATOR</div>
-            <div id="user-name">ALIZHAN</div>
-        </div>
-        <div style="text-align: right">
-            <div style="font-size: 10px; color: var(--text-dim)">BALANCE</div>
-            <div id="balance" style="color: var(--accent)">0.00 $</div>
-        </div>
-    </header>
+    <div id="main-ui">
+        <header>
+            <div class="u-info">
+                <div class="u-avatar">N</div>
+                <div>
+                    <div style="font-weight:900; font-size:14px;" id="operator-name">OPERATOR_NGR</div>
+                    <div style="font-size:8px; color:var(--accent); letter-spacing:1px; font-weight:800;">ACCESS_LEVEL_ADMIN</div>
+                </div>
+            </div>
+            <div class="u-balances">
+                <span class="b-val stars">⭐ <span id="stars-total">1,250</span></span>
+                <span class="b-val coins">💎 <span id="coins-total">3,750</span></span>
+            </div>
+        </header>
 
-    <div id="chart-container"></div>
-    <div id="market-grid"></div>
-</div>
+        <section id="terminal-core">
+            <div class="tf-switches">
+                <button class="tf-btn active" data-tf="1D">1D</button>
+                <button class="tf-btn" data-tf="1W">1W</button>
+                <button class="tf-btn" data-tf="1M">1M</button>
+                <button class="tf-btn" data-tf="1Y">1Y</button>
+            </div>
+            <div id="chart-canvas"></div>
+        </section>
+
+        <main id="market-core">
+            <div class="m-header">AVAILABLE_NGT_PROTOCOLS</div>
+            <div id="ngt-list"></div>
+        </main>
+
+        <footer>
+            <div class="f-item active">📊</div>
+            <div class="f-item">🛡️</div>
+            <div class="f-item">⚙️</div>
+        </footer>
+    </div>
 
 <script>
-// --- CONFIG ---
-const ASSETS = [
-    { id: 'stars', name: 'Telegram Stars', symbol: 'STARS', price: 0.02, icon: '⭐' },
-    { id: 'dst', name: 'DST Token', symbol: 'DST', price: 1.50, icon: '📀' },
-    { id: 'ngr', name: 'NGR Coin', symbol: 'NGRC', price: 5.00, icon: '💎' }
-];
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.headerColor = '#0b1422';
 
-// --- CORE ENGINE ---
-class NGRTerminal {
-    constructor() {
-        this.tg = window.Telegram.WebApp;
-        this.init();
+    const NGT_DATABASE = [
+        { id: 'ngt_1', name: 'NGR White Belt', sym: 'COMMON', stars: 25 },
+        { id: 'ngt_2', name: 'Boxing Gloves NGR', sym: 'RARE', stars: 80 },
+        { id: 'ngt_3', name: 'Elite Gi Sever', sym: 'LEGEND', stars: 250 },
+        { id: 'ngt_4', name: 'NgrPlay Node', sym: 'ULTRA', stars: 500 }
+    ];
+
+    let chart, series, currentData = [];
+    let lastPrice = 100;
+
+    function initChart() {
+        chart = LightweightCharts.createChart(document.getElementById('chart-canvas'), {
+            layout: { backgroundColor: 'transparent', textColor: '#8a9ab0', fontSize: 10 },
+            grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
+            timeScale: { borderColor: 'rgba(255,255,255,0.05)', timeVisible: true },
+            rightPriceScale: { borderColor: 'rgba(255,255,255,0.05)' },
+            crosshair: { mode: 0 }
+        });
+
+        // Используем Baseline для динамической смены цвета (Зеленый/Красный)
+        series = chart.addBaselineSeries({
+            baseValue: { type: 'price', price: 100 },
+            topLineColor: '#00ff88', topFillColor1: 'rgba(0, 255, 136, 0.2)', topFillColor2: 'rgba(0, 255, 136, 0)',
+            bottomLineColor: '#ff4444', bottomFillColor1: 'rgba(255, 68, 68, 0)', bottomFillColor2: 'rgba(255, 68, 68, 0.2)',
+            lineWidth: 3
+        });
+
+        loadHistory('1D');
     }
 
-    async init() {
-        this.log("INITIALIZING NGR CORE...");
-        await new Promise(r => setTimeout(r, 1000));
+    function loadHistory(tf) {
+        let now = Math.floor(Date.now() / 1000);
+        let points = 100;
+        let step = tf === '1D' ? 300 : tf === '1W' ? 3600 : 86400;
         
-        this.tg.ready();
-        this.tg.expand();
-        
-        document.getElementById('boot').style.display = 'none';
-        this.renderMarket();
-        this.initChart();
+        currentData = [];
+        let price = 100;
+        for(let i=0; i<points; i++) {
+            price += (Math.random() - 0.5) * 4;
+            currentData.push({ time: now - (points - i) * step, value: price });
+        }
+        series.setData(currentData);
+        series.applyOptions({ baseValue: { type: 'price', price: currentData[0].value } });
+        lastPrice = currentData[currentData.length-1].value;
     }
 
-    log(msg) {
-        const line = document.createElement('div');
-        line.innerText = `> ${msg}`;
-        document.getElementById('boot-logs').appendChild(line);
+    function handleTrade(type) {
+        const impact = type === 'buy' ? Math.random() * 3 : -Math.random() * 3;
+        lastPrice += impact;
+        const newPoint = { time: Math.floor(Date.now() / 1000), value: lastPrice };
+        currentData.push(newPoint);
+        series.update(newPoint);
+
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    renderMarket() {
-        const grid = document.getElementById('market-grid');
-        grid.innerHTML = ASSETS.map(asset => `
-            <div class="asset-card">
-                <div>
-                    <div>${asset.icon} <b>${asset.symbol}</b></div>
-                    <div style="font-size: 10px; color: var(--text-dim)">${asset.name}</div>
+    function renderMarket() {
+        const list = document.getElementById('ngt-list');
+        list.innerHTML = NGT_DATABASE.map(item => `
+            <div class="ngt-card">
+                <div class="ngt-meta">
+                    <h4>${item.name}</h4>
+                    <span>${item.sym}_SPECIFICATION</span>
                 </div>
-                <div class="price">${asset.price.toFixed(2)} $</div>
+                <div class="ngt-actions">
+                    <button class="buy-btn buy-stars" onclick="handleTrade('buy')">
+                        <span>STARS</span> <b>${item.stars}</b>
+                    </button>
+                    <button class="buy-btn buy-coins" onclick="handleTrade('buy')">
+                        <span>COINS</span> <b>${item.stars * 3}</b>
+                    </button>
+                </div>
             </div>
         `).join('');
     }
 
-    initChart() {
-        const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
-            layout: { backgroundColor: '#050a12', textColor: '#8a9ab0' },
-            grid: { vertLines: { visible: false }, horzLines: { color: '#1e2a3a' } },
-            timeScale: { visible: false }
-        });
-        const series = chart.addAreaSeries({ lineColor: '#ffcc00', topColor: 'rgba(255,204,0,0.3)', bottomColor: 'transparent' });
+    // BOOT SEQUENCE
+    window.addEventListener('load', () => {
+        if(tg.initDataUnsafe?.user) {
+            document.getElementById('operator-name').innerText = tg.initDataUnsafe.user.first_name.toUpperCase();
+        }
+
+        let p = 0;
+        const fill = document.getElementById('l-fill');
+        const status = document.getElementById('l-status');
         
-        // Data simulation
-        let data = [];
-        for(let i=0; i<100; i++) data.push({ time: i, value: 5 + Math.random() * 2 });
-        series.setData(data);
+        const loader = setInterval(() => {
+            p += Math.random() * 15;
+            fill.style.width = Math.min(p, 100) + '%';
+            
+            if(p > 30) status.innerText = 'FETCHING_NETWORK_DATA...';
+            if(p > 60) status.innerText = 'CALCULATING_1:3_RATIO...';
+            if(p > 90) status.innerText = 'TERMINAL_READY';
 
-        setInterval(() => {
-            const last = data[data.length-1];
-            const next = { time: last.time + 1, value: last.value + (Math.random() - 0.5) };
-            series.update(next);
-            data.push(next);
-        }, 2000);
-    }
-}
+            if(p >= 100) {
+                clearInterval(loader);
+                initChart();
+                renderMarket();
+                
+                document.getElementById('main-ui').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('main-ui').style.opacity = '1';
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }
+        }, 150);
+    });
 
-// Запуск
-window.onload = () => { new NGRTerminal(); };
+    // TF SWITCHERS
+    document.querySelectorAll('.tf-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadHistory(btn.dataset.tf);
+        };
+    });
 </script>
-
 </body>
 </html>
 
