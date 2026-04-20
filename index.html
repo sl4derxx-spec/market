@@ -3,343 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="theme-color" content="#050a12">
-    <meta name="description" content="NGR Company Terminal - Advanced Digital Asset Management System for Professional Operators. Built for speed, security, and global trade.">
-    <meta name="author" content="NGR Company - Alizhan">
-    <meta name="keywords" content="NGR, Terminal, Crypto, NGT, Stars, SEVER, Kostanay, Trading, Linux, Termux">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <meta property="og:title" content="NGR TERMINAL OS">
-    <meta property="og:description" content="Industrial Grade Mini App for Digital Assets.">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="NGR Company">
-
-    <title>NGR TERMINAL OS v12.1 — FINAL INDUSTRIAL BUILD</title>
-
+    <title>NGR TERMINAL OS v12.1 — INDUSTRIAL BUILD</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    
-    <link rel="stylesheet" href="style.css">
-
     <style>
-        /* EXTENDED INLINE STYLES (v12.1.0)
-           Этот блок содержит критические стили для интерфейса и прелоадера.
-           Раздуто специально для веса и стабильности.
-        */
         :root {
-            --ngr-bg: #050a12;
-            --ngr-accent: #ffcc00;
-            --ngr-accent-rgb: 255, 204, 0;
-            --ngr-text: #ffffff;
-            --ngr-text-dim: #8a9ab0;
-            --ngr-card-bg: #0b1422;
-            --ngr-border: rgba(255, 204, 0, 0.15);
+            --bg-dark: #050a12; --bg-panel: #0b1422; --accent: #ffcc00;
+            --text-main: #ffffff; --text-dim: #8a9ab0; --up-color: #00ff88;
         }
-
-        @font-face {
-            font-family: 'NGR_Monospace';
-            src: local('Courier New'), local('Courier');
+        body {
+            background: var(--bg-dark); color: var(--text-main);
+            margin: 0; font-family: sans-serif; overflow: hidden;
+            position: fixed; width: 100%; height: 100%;
         }
-
-        html, body {
-            background-color: var(--ngr-bg) !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            overflow: hidden !important; /* Убиваем системный скролл */
-            color: var(--ngr-text);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none; /* Запрещаем жесты браузера */
+        #app-wrapper { height: 100%; display: flex; flex-direction: column; }
+        header {
+            padding: 20px; border-bottom: 1px solid rgba(255,204,0,0.2);
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        /* [NGR_PRELOADER_EXTENDED] */
-        #ngr-preloader {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: var(--ngr-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            flex-direction: column;
-            overflow: hidden;
+        #chart-container { width: 100%; height: 200px; background: #000; }
+        #market-grid { padding: 20px; flex: 1; overflow-y: auto; }
+        .asset-card {
+            background: var(--bg-panel); margin-bottom: 10px; padding: 15px;
+            border-radius: 12px; display: flex; justify-content: space-between;
+            border-left: 4px solid var(--accent);
         }
-
-        .preloader-grid {
-            position: absolute;
-            width: 200%; height: 200%;
-            background-image: radial-gradient(circle, rgba(255,204,0,0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-            animation: grid-move 20s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes grid-move {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-30px); }
-        }
-
-        .loader-logo-container {
-            text-align: center;
-            position: relative;
-        }
-
-        .loader-logo {
-            font-size: 52px;
-            font-weight: 950;
-            color: var(--ngr-accent);
-            letter-spacing: 12px;
-            text-shadow: 0 0 30px rgba(var(--ngr-accent-rgb), 0.6);
-            margin: 0;
-            padding: 0;
-            animation: logo-flicker 2s infinite ease-in-out;
-        }
-
-        @keyframes logo-flicker {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.98); }
-        }
-
-        .loader-status {
-            margin-top: 25px;
-            font-family: 'NGR_Monospace', monospace;
-            font-size: 9px;
-            color: var(--ngr-text-dim);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .loading-bar-wrapper {
-            width: 180px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            margin-top: 15px;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .loading-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--ngr-accent);
-            box-shadow: 0 0 10px var(--ngr-accent);
-            animation: fill-bar 1.8s forwards cubic-bezier(0.65, 0, 0.35, 1);
-        }
-
-        @keyframes fill-bar {
-            0% { width: 0%; }
-            30% { width: 45%; }
-            70% { width: 85%; }
-            100% { width: 100%; }
-        }
-
-        /* [APP_STRUCTURE] */
-        #app-wrapper {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            flex-direction: column;
-            width: 100%;
-            height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        #app-wrapper.visible {
-            display: flex;
-            opacity: 1;
-        }
-
-        /* Контейнер для скролла, чтобы не блокировать контент */
-        #main-scroll-container {
-            flex: 1;
-            overflow-y: auto !important;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 80px; /* Место под футер */
-            touch-action: pan-y; /* РАЗРЕШАЕМ ВЕРТИКАЛЬНЫЙ СКРОЛЛ ПАЛЬЦЕМ */
+        .price { color: var(--accent); font-weight: bold; }
+        .boot-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; font-family: monospace;
         }
     </style>
 </head>
 <body>
 
-    <div id="ngr-preloader">
-        <div class="preloader-grid"></div>
-        <div class="loader-logo-container">
-            <h1 class="loader-logo">NGR</h1>
-            <div class="loader-status">INITIALIZING_CORE_SYSTEM</div>
-            <div class="loading-bar-wrapper">
-                <div class="loading-bar-fill"></div>
-            </div>
-        </div>
-        <div style="position: absolute; bottom: 40px; font-size: 7px; color: #1e2a3a; font-family: monospace;">
-            © 2026 NGR COMPANY. ALL RIGHTS RESERVED. SECURE_BUILD_V12
-        </div>
-    </div>
+<div id="boot" class="boot-screen">
+    <div id="boot-logs"></div>
+</div>
 
-    <div id="app-wrapper">
+<div id="app-wrapper">
+    <header>
+        <div>
+            <div style="font-size: 10px; color: var(--text-dim)">OPERATOR</div>
+            <div id="user-name">ALIZHAN</div>
+        </div>
+        <div style="text-align: right">
+            <div style="font-size: 10px; color: var(--text-dim)">BALANCE</div>
+            <div id="balance" style="color: var(--accent)">0.00 $</div>
+        </div>
+    </header>
+
+    <div id="chart-container"></div>
+    <div id="market-grid"></div>
+</div>
+
+<script>
+// --- CONFIG ---
+const ASSETS = [
+    { id: 'stars', name: 'Telegram Stars', symbol: 'STARS', price: 0.02, icon: '⭐' },
+    { id: 'dst', name: 'DST Token', symbol: 'DST', price: 1.50, icon: '📀' },
+    { id: 'ngr', name: 'NGR Coin', symbol: 'NGRC', price: 5.00, icon: '💎' }
+];
+
+// --- CORE ENGINE ---
+class NGRTerminal {
+    constructor() {
+        this.tg = window.Telegram.WebApp;
+        this.init();
+    }
+
+    async init() {
+        this.log("INITIALIZING NGR CORE...");
+        await new Promise(r => setTimeout(r, 1000));
         
-        <header id="header">
-            <div id="user-info">
-                <div id="user-avatar-placeholder"></div>
-                <div id="user-details">
-                    <div id="user-name">LOADING_OPERATOR...</div>
-                    <div id="user-id-tag">ID: 0000000000</div>
+        this.tg.ready();
+        this.tg.expand();
+        
+        document.getElementById('boot').style.display = 'none';
+        this.renderMarket();
+        this.initChart();
+    }
+
+    log(msg) {
+        const line = document.createElement('div');
+        line.innerText = `> ${msg}`;
+        document.getElementById('boot-logs').appendChild(line);
+    }
+
+    renderMarket() {
+        const grid = document.getElementById('market-grid');
+        grid.innerHTML = ASSETS.map(asset => `
+            <div class="asset-card">
+                <div>
+                    <div>${asset.icon} <b>${asset.symbol}</b></div>
+                    <div style="font-size: 10px; color: var(--text-dim)">${asset.name}</div>
                 </div>
+                <div class="price">${asset.price.toFixed(2)} $</div>
             </div>
-            <div id="balance-display">
-                <span class="currency-label">NET_WORTH</span>
-                <div id="user-balance">0.00</div>
-                <span class="currency-symbol">STARS</span>
-            </div>
-        </header>
+        `).join('');
+    }
 
-        <div id="main-scroll-container">
-            
-            <section class="chart-section">
-                <div class="chart-header">
-                    <span class="chart-title">REALTIME_MARKET_FEED</span>
-                    <div class="chart-controls">
-                        <span class="tframe active">1H</span>
-                        <span class="tframe">4H</span>
-                        <span class="tframe">1D</span>
-                    </div>
-                </div>
-                <div id="chart-container"></div>
-            </section>
+    initChart() {
+        const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+            layout: { backgroundColor: '#050a12', textColor: '#8a9ab0' },
+            grid: { vertLines: { visible: false }, horzLines: { color: '#1e2a3a' } },
+            timeScale: { visible: false }
+        });
+        const series = chart.addAreaSeries({ lineColor: '#ffcc00', topColor: 'rgba(255,204,0,0.3)', bottomColor: 'transparent' });
+        
+        // Data simulation
+        let data = [];
+        for(let i=0; i<100; i++) data.push({ time: i, value: 5 + Math.random() * 2 });
+        series.setData(data);
 
-            <div id="admin-container"></div>
+        setInterval(() => {
+            const last = data[data.length-1];
+            const next = { time: last.time + 1, value: last.value + (Math.random() - 0.5) };
+            series.update(next);
+            data.push(next);
+        }, 2000);
+    }
+}
 
-            <section class="market-section">
-                <div class="market-header-group">
-                    <div class="accent-line"></div>
-                    <div class="text-group">
-                        <h3>💎 GLOBAL_MARKET_ASSETS</h3>
-                        <p>Buy and sell digital assets within NGR ecosystem.</p>
-                    </div>
-                </div>
-                
-                <div id="market-grid">
-                    <div class="asset-skeleton"></div>
-                    <div class="asset-skeleton"></div>
-                    <div class="asset-skeleton"></div>
-                </div>
-            </section>
+// Запуск
+window.onload = () => { new NGRTerminal(); };
+</script>
 
-            <section class="logs-section">
-                <div id="terminal-logs">
-                    <div class="log-entry">SYSTEM_READY_FOR_INPUT...</div>
-                    <div class="log-entry">ENCRYPTED_TUNNEL_ESTABLISHED...</div>
-                </div>
-            </section>
-
-        </div> <footer class="terminal-footer">
-            <div class="footer-blur"></div>
-            <div class="footer-content">
-                <div class="sys-info">
-                    <span class="v-tag">OS_V12.1</span>
-                    <span class="s-tag">STABLE</span>
-                </div>
-                <div class="brand-info">
-                    NGR COMPANY
-                </div>
-                <div class="connection-info">
-                    <span class="ping">PING: 14MS</span>
-                    <div class="pulse-dot"></div>
-                </div>
-            </div>
-        </footer>
-
-    </div> <script type="module" src="app.js"></script>
-
-    <script>
-        /**
-         * BOOTLOADER v12.1.0
-         * Управление жизненным циклом Telegram WebApp и инициализация интерфейса.
-         */
-        (function() {
-            const ngr_tg = window.Telegram.WebApp;
-            
-            // Расширенная настройка WebApp
-            function initTelegram() {
-                if (!ngr_tg) {
-                    console.error("[NGR_ERROR] Telegram WebApp not detected.");
-                    return;
-                }
-                
-                ngr_tg.ready();
-                ngr_tg.expand();
-                
-                // Визуальная адаптация под NGR Black
-                ngr_tg.setHeaderColor('#050a12');
-                ngr_tg.setBackgroundColor('#050a12');
-                
-                // Блокируем закрытие свайпом вниз
-                if (ngr_tg.isVerticalSwipesEnabled !== undefined) {
-                    ngr_tg.isVerticalSwipesEnabled = false;
-                }
-
-                // Виброотклик при загрузке
-                if (ngr_tg.HapticFeedback) {
-                    ngr_tg.HapticFeedback.notificationOccurred('success');
-                }
-            }
-
-            // Управление переключением прелоадера
-            function finalizeBoot() {
-                const preloader = document.getElementById('ngr-preloader');
-                const app = document.getElementById('app-wrapper');
-                
-                // Имитация дешифровки и загрузки (2.2 секунды)
-                setTimeout(() => {
-                    if (preloader) {
-                        preloader.style.transition = 'opacity 0.6s ease';
-                        preloader.style.opacity = '0';
-                        setTimeout(() => preloader.style.display = 'none', 600);
-                    }
-                    if (app) {
-                        app.classList.add('visible');
-                    }
-                    console.log("[NGR_BOOT] System online. Welcome, Alizhan.");
-                }, 2200);
-            }
-
-            // Жесткое предотвращение скролла BODY (Rubber-banding на iOS)
-            // При этом оставляем скролл внутри #main-scroll-container
-            document.addEventListener('touchmove', function(e) {
-                const scrollContainer = document.getElementById('main-scroll-container');
-                if (e.target === scrollContainer || scrollContainer.contains(e.target)) {
-                    // Разрешаем скролл внутри контейнера
-                    return;
-                }
-                e.preventDefault();
-            }, { passive: false });
-
-            // Блокировка контекстного меню
-            document.addEventListener('contextmenu', e => e.preventDefault());
-
-            // Запуск последовательности
-            initTelegram();
-            finalizeBoot();
-        })();
-
-        /* EXTENDED DATA FILLER (FOR WEIGHT)
-           Этот блок кода не несет полезной нагрузки, но увеличивает размер файла
-           и может быть использован для будущих расширений системы логирования.
-        */
-        const NGR_SYSDATA_DUMP = {
-            version: "12.1.0-INDUSTRIAL",
-            checksum: "0xAF882910BC",
-            last_login: new Date().toISOString(),
-            session_entropy: Math.random().toString(36).substring(7),
-            hardware_acceleration: true,
-            terminal_encoding: "UTF-8",
+</body>
+</html>
 
