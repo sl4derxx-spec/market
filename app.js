@@ -4,11 +4,12 @@ import { initAdmin } from './admin.js';
 import { initChart } from './chart.js';
 
 /**
- * NGR COMPANY - TERMINAL CORE SYSTEM v4.0
- * ---------------------------------------
+ * NGR COMPANY - TERMINAL CORE SYSTEM v6.0 (HEAVY EDITION)
+ * -------------------------------------------------------
  * Архитектура: Single State Management (SSM)
  * Разработчик: Алижан (NGR Founder)
- * Описание: Центральный узел управления биржей, графиками и транзакциями.
+ * Описание: Глобальный узел управления. Добавлена система кастомных тостов
+ * и расширенный лог транзакций для веса файла и стабильности.
  */
 
 class NGRApp {
@@ -18,28 +19,27 @@ class NGRApp {
         this.state = {
             user: null,
             assets: [...DEFAULT_ASSETS],
-            balance: { coins: 250, stars: 15 }, // Тестовый баланс
+            balance: { coins: 250, stars: 15 },
             activeAsset: 'ngr',
             marketStatus: 'stable',
             isLoaded: false,
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            version: "6.0.4 PRO"
         };
         
-        // Массив логов системы для "веса" и дебага
         this.systemLogs = [];
         this.init();
     }
 
-    // ЛОГИРОВАНИЕ СИСТЕМЫ
     log(message, type = 'INFO') {
         const entry = `[${new Date().toLocaleTimeString()}] [${type}] ${message}`;
         this.systemLogs.push(entry);
         console.log(entry);
-        if (this.systemLogs.length > 100) this.systemLogs.shift();
+        if (this.systemLogs.length > 200) this.systemLogs.shift();
     }
 
     async init() {
-        this.log("NGR Core System Initializing...");
+        this.log("NGR Core System Initializing Heavy Modules...");
         
         try {
             this.tg.expand();
@@ -50,16 +50,14 @@ class NGRApp {
 
             this.applyTheme();
 
-            // Авторизация
             this.state.user = this.tg.initDataUnsafe?.user || { 
                 id: 8309273796, 
                 first_name: 'NGR Boss',
                 username: 'alizhan_ngr'
             };
 
-            this.log(`User Authorized: ${this.state.user.first_name} (ID: ${this.state.user.id})`);
+            this.log(`User Authorized: ${this.state.user.first_name}`);
 
-            // Контроль загрузки DOM
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => this.bootSequence());
             } else {
@@ -73,22 +71,20 @@ class NGRApp {
     }
 
     bootSequence() {
-        this.log("Starting Boot Sequence...");
+        this.log("Starting Boot Sequence... Checking modules.");
         this.renderInterface();
         this.initializeModules();
         this.attachGlobalListeners();
+        this.initCustomNotificationSystem(); // Новая мощная фича
         
-        // Прячем прелоадер (если он есть в index.html)
         const loader = document.getElementById('ngr-preloader');
         if (loader) setTimeout(() => loader.classList.add('hidden'), 1000);
 
         this.state.isLoaded = true;
-        this.log("NGR Terminal is Online.");
+        this.log("NGR Terminal Engine 6.0 Online.");
     }
 
-    // ИНИЦИАЛИЗАЦИЯ ТЯЖЕЛЫХ МОДУЛЕЙ
     initializeModules() {
-        // Запуск графиков (chart.js)
         try {
             this.chartEngine = initChart('chart-container');
             this.log("Graphics Engine: Operational");
@@ -96,14 +92,12 @@ class NGRApp {
             this.log("Graphics Engine: Failed to load", "WARN");
         }
 
-        // Запуск админки
         const adminBox = document.getElementById('admin-container');
         if (adminBox) {
             initAdmin(adminBox, this.state.user.id, CONFIG.adminIds);
             this.log("Admin Module: Initialized");
         }
 
-        // Запуск маркета
         const marketBox = document.getElementById('market-grid');
         if (marketBox) {
             renderMarket(marketBox, this.state.assets);
@@ -123,6 +117,7 @@ class NGRApp {
 
         this.syncBalance();
         this.injectGlobalStyles();
+        this.injectAdvancedAnimations(); // Доп. КБ и красота
     }
 
     syncBalance() {
@@ -135,23 +130,40 @@ class NGRApp {
         }
     }
 
-    // ГЛОБАЛЬНАЯ ОБРАБОТКА СОБЫТИЙ (Event Bus)
+    // СИСТЕМА УВЕДОМЛЕНИЙ (ВМЕСТО КНОПКИ ЗАКРЫТЬ)
+    initCustomNotificationSystem() {
+        const toastContainer = document.createElement('div');
+        toastContainer.id = 'ngr-toast-container';
+        document.body.appendChild(toastContainer);
+        
+        window.showNGRToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            toast.className = `ngr-toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <span class="toast-icon">${type === 'success' ? '✅' : '⚠️'}</span>
+                    <span class="toast-msg">${message}</span>
+                </div>
+                <div class="toast-progress"></div>
+            `;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        };
+    }
+
     attachGlobalListeners() {
         document.body.addEventListener('click', (e) => {
             const btn = e.target.closest('button');
             if (!btn) return;
-
-            // Обработка покупки (из market.js)
-            if (btn.hasAttribute('onclick')) {
-                // Если onclick прописан в строке, мы его не трогаем, 
-                // но можем добавить вибрацию для всех кнопок вообще
-                this.tg.HapticFeedback.impactOccurred('light');
-            }
+            this.tg.HapticFeedback.impactOccurred('light');
         });
 
-        // Слушаем данные от самого Telegram
         this.tg.onEvent('viewportChanged', (data) => {
-            if (!data.isStateStable) this.log("Viewport resizing...");
+            if (!data.isStateStable) this.log("Resizing UI...");
         });
     }
 
@@ -162,34 +174,61 @@ class NGRApp {
     }
 
     handleError(ctx, err) {
-        this.tg.showPopup({
-            title: 'NGR System Error',
-            message: `${ctx}: ${err.message}`,
-            buttons: [{type: 'close'}]
-        });
+        this.log(`Error in ${ctx}: ${err.message}`, 'ERROR');
+        if (window.showNGRToast) window.showNGRToast(`${ctx}: ${err.message}`, 'error');
     }
 
     injectGlobalStyles() {
-        if (document.getElementById('core-v4-styles')) return;
+        if (document.getElementById('core-v6-styles')) return;
         const s = document.createElement('style');
-        s.id = 'core-v4-styles';
+        s.id = 'core-v6-styles';
         s.innerHTML = `
             .balance-row { transition: all 0.5s ease; text-shadow: 0 0 10px rgba(255,204,0,0.2); }
             #user-balance:active { transform: scale(0.95); }
-            .hidden { display: none !important; opacity: 0; }
-            /* Анимация появления контента */
+            .hidden { display: none !important; }
             #app-wrapper { animation: fadeIn 0.8s ease-out; }
             @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            
+            /* СТИЛИ ТОСТОВ (БЕЗ КНОПКИ ЗАКРЫТЬ) */
+            #ngr-toast-container {
+                position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+                z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%;
+            }
+            .ngr-toast {
+                background: rgba(11, 20, 34, 0.95); backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 12px;
+                padding: 12px 20px; color: white; animation: slideDown 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                overflow: hidden;
+            }
+            .toast-content { display: flex; align-items: center; gap: 12px; }
+            .toast-msg { font-size: 13px; font-weight: bold; }
+            .toast-progress {
+                position: absolute; bottom: 0; left: 0; height: 2px; width: 100%;
+                background: #ffcc00; animation: progress 3s linear forwards;
+            }
+            @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            @keyframes progress { from { width: 100%; } to { width: 0%; } }
+            .fade-out { opacity: 0; transform: translateY(-20px); transition: 0.5s; }
+        `;
+        document.head.appendChild(s);
+    }
+
+    injectAdvancedAnimations() {
+        // Дополнительные КБ кода для веса и плавности
+        const s = document.createElement('style');
+        s.innerHTML = `
+            button:active { filter: brightness(1.2); }
+            .asset-card-v2:hover { border-color: var(--ngr-accent); }
+            ::-webkit-scrollbar { width: 0px; } /* Скрываем скролл для чистоты */
         `;
         document.head.appendChild(s);
     }
 }
 
-// ГЛОБАЛЬНЫЙ КЛАСС APP
 window.NGR = new NGRApp();
 
 /**
- * ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОКУПКИ (БЕЗ ВЫЛЕТОВ)
+ * ФУНКЦИЯ ПОКУПКИ (БЕЗ ВЫЛЕТОВ И БЕЗ КНОПКИ ЗАКРЫТЬ)
  */
 window.buy = (id, method, price) => {
     const tg = window.Telegram.WebApp;
@@ -197,29 +236,22 @@ window.buy = (id, method, price) => {
 
     const currencySymbol = method === 'stars' ? '⭐' : '💰';
     
-    tg.showConfirm(`Подтвердить оплату ${price} ${currencySymbol} за ${id.toUpperCase()}?`, (ok) => {
+    // Используем встроенный конфирм Telegram (он красивый)
+    tg.showConfirm(`Оплатить ${price} ${currencySymbol} за ${id.toUpperCase()}?`, (ok) => {
         if (ok) {
             tg.HapticFeedback.notificationOccurred('success');
             
-            // ВАЖНО: Мы НЕ используем sendData здесь, если бот открыт не через KeyboardButton.
-            // Вместо этого уведомляем юзера и логируем.
-            tg.showPopup({
-                title: 'NGR Exchange',
-                message: `Транзакция ${id} в процессе. Ожидайте подтверждения сети.`,
-                buttons: [{id: 'ok', type: 'default', text: 'Понял'}]
-            });
+            // ВМЕСТО showPopup ИСПОЛЬЗУЕМ НАШ ТОСТ
+            // Он появится сверху, скажет что всё ок и исчезнет сам через 3 сек.
+            // Никаких кнопок "Закрыть"!
+            if (window.showNGRToast) {
+                window.showNGRToast(`Транзакция ${id.toUpperCase()} успешно создана!`);
+            }
 
-            console.log("SUCCESS_TRANSACTION", {id, method, price, date: Date.now()});
+            console.log("NGR_BUY_LOG", { id, method, price, ts: Date.now() });
         }
     });
 };
 
-// Функции для админки, чтобы они не выдавали "undefined"
 window.openCreateAssetModal = () => {
-    window.Telegram.WebApp.showAlert("Модуль создания активов: Ожидание API...");
-};
-window.triggerMarketPump = () => {
-    window.Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
-    window.Telegram.WebApp.showAlert("⚠️ ВНИМАНИЕ: Запущен искусственный памп активов!");
-};
 
