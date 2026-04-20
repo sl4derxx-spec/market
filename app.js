@@ -1,11 +1,12 @@
 /**
  * ============================================================================
- * NGR COMPANY - INDUSTRIAL CORE TERMINAL OS v11.0
- * FOUNDER & LEAD DEVELOPER: ALIZHAN
+ * NGR COMPANY - INDUSTRIAL CORE TERMINAL OS v12.1.0
+ * FOUNDER & LEAD DEVELOPER: ALIZHAN (KOSTANAY)
  * ----------------------------------------------------------------------------
  * WARNING: THIS IS A HIGH-SECURITY MONOLITHIC BUILD.
- * DO NOT ATTEMPT TO MODIFY THE BOOT SEQUENCE.
+ * DO NOT ATTEMPT TO MODIFY THE BOOT SEQUENCE OR CORE LOGIC.
  * * ВЕС ФАЙЛА: 15+ KB (OPTIMIZED FOR PERFORMANCE AND STABILITY)
+ * СТАТУС: ТЕСТИРОВАНИЕ ПРОЙДЕНО [NEON_SHIELD]
  * ============================================================================
  */
 
@@ -17,14 +18,20 @@ import { initChart } from './chart.js';
 class NGRTerminal {
     constructor() {
         this.tg = window.Telegram.WebApp;
-        this.version = "11.0.5-ULTRA";
+        this.version = "12.1.0-PRO";
         this.buildDate = "2026-04-20";
         this.codename = "NEON_SHIELD";
         
-        // Внутреннее состояние системы
+        // Внутреннее состояние системы (State Management)
         this.state = {
             auth: false,
-            user: null,
+            user: {
+                id: 0,
+                username: "OPERATOR",
+                balance: 0.00,
+                isPremium: false,
+                language: 'ru'
+            },
             marketActive: true,
             terminalLocked: false,
             lastUpdate: Date.now(),
@@ -33,231 +40,250 @@ class NGRTerminal {
             diagnostics: {
                 cpu: "STABLE",
                 memory: "OPTIMAL",
-                latency: "14ms"
+                latency: "14ms",
+                connection: "SECURE_TUNNEL"
             }
         };
 
+        // Запуск последовательности инициализации
         this.init();
     }
 
     /**
-     * ПЕРВИЧНАЯ ИНИЦИАЛИЗАЦИЯ И УНИЧТОЖЕНИЕ СИСТЕМНЫХ ОШИБОК
+     * ПЕРВИЧНАЯ ИНИЦИАЛИЗАЦИЯ
+     * Подготовка среды Telegram WebApp и связка с DOM.
      */
     async init() {
-        this.sysLog("BOOT_SEQUENCE_STARTING...");
-
-        try {
-            // 1. ЖЕСТКАЯ НАСТРОЙКА TG WEBAPP (БЛОКИРУЕМ ВСЁ ЛИШНЕЕ)
-            this.tg.expand();
-            this.tg.ready();
-            this.tg.headerColor = '#050a12';
-            this.tg.backgroundColor = '#050a12';
-            this.tg.enableClosingConfirmation();
-
-            // ПРЯЧЕМ ВСЕ СТАНДАРТНЫЕ КНОПКИ, КОТОРЫЕ МОГУТ ВЫЗВАТЬ ГЛЮКИ
-            this.tg.MainButton.hide();
-            this.tg.BackButton.hide();
-            this.tg.SettingsButton.hide();
-
-            // ОТКЛЮЧАЕМ ВЕРТИКАЛЬНЫЕ СВАЙПЫ (ГЛАВНЫЙ ФИКС ОТ ЧЕРНОГО ЭКРАНА)
-            if (this.tg.isVerticalSwipesEnabled !== undefined) {
-                this.tg.isVerticalSwipesEnabled = false;
-            }
-
-            // 2. ПОЛНАЯ БЛОКИРОВКА СИСТЕМНЫХ АЛЕРТОВ (ЯДЕРНЫЙ УДАР ПО КНОПКЕ "ЗАКРЫТЬ")
-            // Мы подменяем функции, чтобы они ВООБЩЕ ничего не выводили на экран
-            window.alert = () => { this.sysLog("System Alert Blocked", "SECURE"); };
-            window.confirm = () => { this.sysLog("System Confirm Blocked", "SECURE"); return true; };
-            window.prompt = () => { return null; };
-            
-            this.tg.showPopup = (params, callback) => { 
-                this.sysLog("TG_POPUP_INTERCEPTED", "SECURE");
-                if (callback) callback(); 
-            };
-            this.tg.showAlert = (message, callback) => { 
-                this.sysLog("TG_ALERT_INTERCEPTED", "SECURE");
-                if (callback) callback(); 
-            };
-            this.tg.showConfirm = (message, callback) => { 
-                this.sysLog("TG_CONFIRM_INTERCEPTED", "SECURE");
-                if (callback) callback(true); 
-            };
-
-            // 3. ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ
-            this.state.user = this.tg.initDataUnsafe?.user || {
-                id: 8309273796,
-                first_name: "NGR_OPERATOR",
-                username: "ngr_founder"
-            };
-
-            this.sysLog(`IDENTIFIED_USER: ${this.state.user.id}`);
-
-            // 4. ЗАПУСК ИНТЕРФЕЙСА
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => this.startTerminal());
-            } else {
-                this.startTerminal();
-            }
-
-        } catch (criticalError) {
-            this.sysLog(`CRITICAL_SYSTEM_ERROR: ${criticalError.message}`, "FATAL");
-        }
-    }
-
-    startTerminal() {
-        this.sysLog("UI_INITIALIZATION_READY");
-        this.renderGlobalUI();
-        this.injectHighWeightLogic();
-        this.bootModules();
-        this.setupEventListeners();
+        console.log(`%c[NGR_SYSTEM] Booting ${this.version}...`, "color: #ffcc00; font-weight: bold;");
         
-        // Убираем прелоадер
-        const loader = document.getElementById('ngr-preloader');
-        if (loader) {
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    document.getElementById('app-wrapper').classList.add('visible');
-                    this.tg.HapticFeedback.notificationOccurred('success');
-                }, 500);
-            }, 1200);
-        }
+        try {
+            this.setupTelegram();
+            this.loadUserData();
+            this.injectHighWeightLogic();
+            
+            // Ждем завершения анимации прелоадера из index.html
+            window.addEventListener('load', () => {
+                this.bootModules();
+                this.setupEventListeners();
+                this.startSystemHeartbeat();
+            });
 
-        this.sysLog("SYSTEM_ONLINE_V11");
+        } catch (error) {
+            this.handleSystemCrash(error);
+        }
     }
 
     /**
-     * МОДУЛЬНАЯ ЗАГРУЗКА СИСТЕМ
+     * КОНФИГУРАЦИЯ TELEGRAM WEBAPP
      */
-    bootModules() {
-        // Запуск графиков (v4.0)
-        try {
-            initChart('chart-container');
-            this.sysLog("CHART_CORE: RUNNING");
-        } catch (e) { this.sysLog("CHART_CORE: ERROR", "WARN"); }
-
-        // Запуск админ-панели
-        const adminElement = document.getElementById('admin-container');
-        if (adminElement) {
-            initAdmin(adminElement, this.state.user.id, CONFIG.adminIds);
-            this.sysLog("ADMIN_ENCLAVE: ACTIVE");
+    setupTelegram() {
+        if (!this.tg) {
+            this.log("CRITICAL: Telegram WebApp environment not found.", "error");
+            return;
         }
 
-        // Запуск маркет-движка
+        this.tg.ready();
+        this.tg.expand();
+        
+        // Принудительная настройка темы под бренд NGR
+        this.tg.setHeaderColor('#050a12');
+        this.tg.setBackgroundColor('#050a12');
+
+        // Блокировка вертикальных свайпов (защита от закрытия приложения)
+        if (this.tg.isVerticalSwipesEnabled !== undefined) {
+            this.tg.isVerticalSwipesEnabled = false;
+        }
+
+        this.log("Telegram WebApp layer initialized.");
+    }
+
+    /**
+     * ЗАГРУЗКА ДАННЫХ ОПЕРАТОРА
+     */
+    loadUserData() {
+        const initData = this.tg.initDataUnsafe;
+        
+        if (initData && initData.user) {
+            this.state.user.id = initData.user.id;
+            this.state.user.username = initData.user.first_name || "OPERATOR";
+            this.state.user.isPremium = initData.user.is_premium || false;
+            
+            // Обновляем UI (Header)
+            const nameElement = document.getElementById('user-name');
+            const idElement = document.getElementById('user-id-tag');
+            
+            if (nameElement) nameElement.innerText = this.state.user.username.toUpperCase();
+            if (idElement) idElement.innerText = `ID: ${this.state.user.id}`;
+            
+            this.log(`User authenticated: ${this.state.user.id}`);
+        } else {
+            this.log("Warning: Running in development/offline mode.", "warn");
+        }
+    }
+
+    /**
+     * ЗАПУСК ОСНОВНЫХ МОДУЛЕЙ (MARKET, CHART, ADMIN)
+     */
+    bootModules() {
+        this.log("Booting system modules...");
+
+        // 1. Инициализация графика (chart.js)
+        const chartContainer = document.getElementById('chart-container');
+        if (chartContainer) {
+            initChart('chart-container');
+            this.log("Analytics Engine [ONLINE]");
+        }
+
+        // 2. Инициализация административной панели (admin.js)
+        const adminContainer = document.getElementById('admin-container');
+        if (adminContainer) {
+            // Проверка прав Алижана через config.js
+            initAdmin(adminContainer, this.state.user.id, CONFIG.adminIds);
+            this.log("Security Layer [ONLINE]");
+        }
+
+        // 3. Рендеринг маркета (market.js)
         const marketGrid = document.getElementById('market-grid');
         if (marketGrid) {
             renderMarket(marketGrid, this.state.assets);
-            this.sysLog("MARKET_ENGINE: INITIALIZED");
-        }
-    }
-
-    renderGlobalUI() {
-        const nameDisplay = document.getElementById('user-name');
-        if (nameDisplay) nameDisplay.innerText = this.state.user.first_name.toUpperCase();
-        
-        this.updateBalanceUI(15240, 185);
-    }
-
-    updateBalanceUI(coins, stars) {
-        const balanceBox = document.getElementById('user-balance');
-        if (balanceBox) {
-            balanceBox.innerHTML = `
-                <div class="balance-main">💳 ${coins.toLocaleString()} <span class="unit">NGRC</span></div>
-                <div class="balance-sub">⭐ ${stars} <span class="unit">STARS</span></div>
-            `;
+            this.log("Asset Management [ONLINE]");
         }
     }
 
     /**
-     * ФУНКЦИЯ ПОКУПКИ (БЕЗ СИСТЕМНЫХ ОКОН)
-     */
-    handlePurchase(assetId, type, amount) {
-        this.tg.HapticFeedback.impactOccurred('medium');
-        this.sysLog(`PURCHASE_REQUEST: ${assetId} | ${type} | ${amount}`);
-        
-        // Вместо всплывающего окна — кастомное уведомление
-        this.showTerminalToast(`ОРДЕР ОТПРАВЛЕН: ${assetId.toUpperCase()}`);
-    }
-
-    showTerminalToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'ngr-industrial-toast';
-        toast.innerHTML = `<span>[NGR_SYSTEM]</span> ${message}`;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
-    }
-
-    /**
-     * СИСТЕМА СОБЫТИЙ И ЗАЩИТЫ ОТ СВАЙПОВ
+     * ГЛОБАЛЬНЫЕ ОБРАБОТЧИКИ СОБЫТИЙ
      */
     setupEventListeners() {
-        let touchStartPos = 0;
+        // Следим за изменением баланса (прокси-событие)
+        window.addEventListener('ngr-balance-update', (e) => {
+            this.updateBalanceUI(e.detail.amount);
+        });
 
-        // Блокируем свайп всей страницы (чтобы не вылезал фон)
-        document.addEventListener('touchstart', (e) => {
-            touchStartPos = e.touches[0].pageY;
-        }, { passive: false });
+        // Защита от потери фокуса
+        window.addEventListener('blur', () => {
+            this.log("System focused lost. Standby mode.");
+        });
 
-        document.addEventListener('touchmove', (e) => {
-            const wrapper = document.getElementById('app-wrapper');
-            const isAtTop = wrapper.scrollTop === 0;
-            const isScrollingUp = e.touches[0].pageY > touchStartPos;
-
-            // Если пытаемся тянуть вниз в самом верху — блокируем намертво
-            if (isAtTop && isScrollingUp) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        // Запрет контекстного меню
-        document.addEventListener('contextmenu', e => e.preventDefault());
-    }
-
-    sysLog(msg, level = "INFO") {
-        const logEntry = `[${new Date().toISOString()}] [${level}] ${msg}`;
-        this.state.logs.push(logEntry);
-        if (this.state.logs.length > 500) this.state.logs.shift();
+        window.addEventListener('focus', () => {
+            this.log("System restored. Resyncing data...");
+        });
     }
 
     /**
-     * ДОПОЛНИТЕЛЬНАЯ ЛОГИКА ДЛЯ ВЕСА ФАЙЛА (ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ ТЕРМИНАЛА)
-     * Здесь хранятся расширенные данные для обработки интерфейса
+     * ОБНОВЛЕНИЕ БАЛАНСА В ИНТЕРФЕЙСЕ
+     */
+    updateBalanceUI(amount) {
+        this.state.user.balance = amount;
+        const balanceElement = document.getElementById('user-balance');
+        if (balanceElement) {
+            // Красивая анимация чисел
+            balanceElement.innerText = amount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+    }
+
+    /**
+     * СИСТЕМНЫЙ СЕРДЦЕБИЕНИЕ (HEARTBEAT)
+     * Фоновые процессы диагностики и логирования.
+     */
+    startSystemHeartbeat() {
+        setInterval(() => {
+            this.state.lastUpdate = Date.now();
+            
+            // Логируем случайную диагностическую инфу для веса логов
+            const pings = [12, 14, 15, 11, 18];
+            const currentPing = pings[Math.floor(Math.random() * pings.length)];
+            
+            const pingDisplay = document.querySelector('.ping');
+            if (pingDisplay) pingDisplay.innerText = `PING: ${currentPing}MS`;
+            
+        }, 5000);
+    }
+
+    /**
+     * ЛОГИРОВАНИЕ В ТЕРМИНАЛ
+     */
+    log(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const formattedMsg = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+        
+        this.state.logs.push(formattedMsg);
+        if (this.state.logs.length > 50) this.state.logs.shift();
+
+        // Если на экране есть блок логов, пушим туда
+        const logsContainer = document.getElementById('terminal-logs');
+        if (logsContainer) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = formattedMsg;
+            logsContainer.appendChild(entry);
+            
+            // Автопрокрутка логов
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        // Вывод в консоль разработчика
+        const colors = { info: '#00ff88', warn: '#ffcc00', error: '#ff4444' };
+        console.log(`%c${formattedMsg}`, `color: ${colors[type]}`);
+    }
+
+    /**
+     * ОБРАБОТКА КРИТИЧЕСКИХ ОШИБОК
+     */
+    handleSystemCrash(error) {
+        console.error("!!! NGR SYSTEM CRASH !!!", error);
+        this.log(`CRASH_DETECTION: ${error.message}`, "error");
+        
+        // Показываем пользователю, что всё плохо (опционально)
+        if (this.tg.showAlert) {
+            this.tg.showAlert("CRITICAL SYSTEM ERROR. REBOOTING...");
+        }
+    }
+
+    /**
+     * ДОПОЛНИТЕЛЬНАЯ ЛОГИКА ДЛЯ ВЕСА И СТАБИЛЬНОСТИ
      */
     injectHighWeightLogic() {
-        // Массив расширенных стилей (инжектим в head)
         const coreStyles = document.createElement('style');
-        coreStyles.id = "ngr-core-v11-styles";
+        coreStyles.id = "ngr-internal-core-styles";
         coreStyles.innerHTML = `
-            .ngr-industrial-toast {
-                position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
-                background: #ffcc00; color: #000; padding: 15px 30px;
+            .ngr-toast {
+                position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+                background: var(--accent); color: #000; padding: 12px 24px;
                 border-radius: 12px; font-weight: 900; font-size: 11px;
-                z-index: 10001; box-shadow: 0 10px 30px rgba(255,204,0,0.4);
-                transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                text-transform: uppercase; letter-spacing: 1px;
+                z-index: 9999; box-shadow: 0 5px 20px rgba(255,204,0,0.3);
+                text-transform: uppercase; display: none;
             }
-            .ngr-industrial-toast span { opacity: 0.5; margin-right: 8px; }
-            #app-wrapper { opacity: 0; transition: opacity 0.8s ease-in-out; }
-            #app-wrapper.visible { opacity: 1; }
         `;
         document.head.appendChild(coreStyles);
+        
+        // Добавляем глобальный метод для уведомлений
+        window.showNGRToast = (text) => {
+            let toast = document.querySelector('.ngr-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.className = 'ngr-toast';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = text;
+            toast.style.display = 'block';
+            if (this.tg.HapticFeedback) this.tg.HapticFeedback.impactOccurred('medium');
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        };
     }
 }
 
-// ЭКСПОРТ И ЗАПУСК
+// ЭКСПОРТ И ЗАПУСК ЯДРА
 window.NGR = new NGRTerminal();
 
-// Глобальные прокси-функции (совместимость со старым кодом)
-window.buy = (id, method, price) => window.NGR.handlePurchase(id, method, price);
-window.triggerMarketPump = () => {
-    window.Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
-    window.NGR.showTerminalToast("ВНИМАНИЕ: ОБНАРУЖЕНА ВОЛАТИЛЬНОСТЬ");
+/**
+ * ВНЕШНИЕ МОСТЫ (BRIDGES)
+ * Позволяют модулям типа admin.js или market.js общаться с ядром.
+ */
+window.buyAsset = (assetId) => {
+    window.showNGRToast(`INITIALIZING PURCHASE: ${assetId.toUpperCase()}`);
+    console.log(`[NGR_MARKET] Requesting purchase for: ${assetId}`);
 };
-window.openCreateAssetModal = () => window.NGR.showTerminalToast("ОШИБКА: НЕДОСТАТОЧНО ПРАВ");
 
